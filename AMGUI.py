@@ -740,7 +740,7 @@ class GUIHandler:
         self.permanentButton.place(x=18, y=162)
 
     def createGroupLogo(self):
-        self.lablogo = tk.PhotoImage(file = "QGL.png")
+        self.lablogo = tk.PhotoImage(file = "assets/QGL.png")
         self.lablogo = self.lablogo.subsample(2)
         labellogo = tk.ttk.Label(self.root, image=self.lablogo)
         labellogo.place(x=552, y=700)
@@ -808,9 +808,9 @@ class GUIHandler:
         self.hallr_label_val = tk.ttk.Label(frame, text=str('nan'))
         self.hallr_label_val.place(x=885, y=47)
 
-        self.on = tk.PhotoImage(file = "on.png")
+        self.on = tk.PhotoImage(file = "assets/on.png")
         self.on = self.on.subsample(2)
-        self.off = tk.PhotoImage(file = "off.png")
+        self.off = tk.PhotoImage(file = "assets/off.png")
         self.off= self.off.subsample(2)
 
    
