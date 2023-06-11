@@ -13,6 +13,8 @@ import tkinter.font as font
 import json
 from AMDev import ArduinoController
 import time
+from tkinter.ttk import Style
+
 
 
 
@@ -614,8 +616,8 @@ class GUIHandler:
         self.checkbox_z = tk.ttk.Checkbutton(checkboxframe, text='z', variable=self.varZplot, onvalue=True, offvalue=False,  command=lambda:(self.arcon.newDataEvent.set()))
         self.checkbox_r = tk.ttk.Checkbutton(checkboxframe, text='R', variable=self.varRplot, onvalue=True, offvalue=False,  command=lambda:(self.arcon.newDataEvent.set()))  
 
-        style = tk.ttk.Style()
-        style.configure("TCheckbutton", font=("TkDefaultFont", 12))
+        # style = tk.ttk.Style()
+        # style.configure("TCheckbutton", font=("TkDefaultFont", 12))
         self.checkbox_x.pack(padx=5,side=tk.LEFT)
         self.checkbox_y.pack(padx=5,side=tk.LEFT)
         self.checkbox_z.pack(padx=5,side=tk.LEFT)
@@ -871,9 +873,9 @@ class GUIHandler:
 
     def createMainWindow(self):
         self.root = ThemedTk()
-        my_font = font.Font(size=12)
-        tk.ttk.Style().configure("TButton", font=my_font)
-        self.root.option_add("*Font", my_font)
+        self.my_font = font.Font(size=12)
+        Style().configure("TButton", font=self.my_font)
+        self.root.option_add("*font", self.my_font)
         self.root.title('Automated Magnetometer GUI')
         self.root.set_theme('arc')
         self.root.wm_geometry("1600x900")
