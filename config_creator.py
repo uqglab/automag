@@ -10,9 +10,9 @@ default_config = {
     'stepperMaxSpeed': 1000,
     'stepperPosition': 0,
     'stepperPosition_mm': 0,
-    'stepperStepsPerRev': 400,
+    'stepperRev': 400,
     'photosensorPins': [48, 50],
-    'stepperRev_mm': 1.25,
+    
 
 
     'digitalInput': {},
@@ -33,8 +33,8 @@ default_userInput = {
     'measure_start': 0,
     'measureEndPoint': 100,
     'measureEndPoint_mm': 125,
-    'measurementDataCount': 0
-
+    'measurementDataCount': 0,
+    'stepperRev_mm': 1.25,
 }
 
 

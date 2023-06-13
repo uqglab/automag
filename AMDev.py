@@ -883,7 +883,8 @@ class ArduinoController():
         self.autoSaveEvent.set()
         self.coilModeEndTime = time.time()
         self.runCoilModeTime = self.coilModeEndTime - self.coilModeStartTime
-
+        self.CoilEndEvent.set()
+    
     async def runPermaModeOff(self):
         """
         performs permanent mode with absence of the magnet (or the coil current is blocked) 
@@ -969,3 +970,4 @@ class ArduinoController():
         self.autoSaveEvent.set()
         self.runPermaModeEndTime = time.time()
         self.runPermaModeTime = self.runPermaModeEndTime - self.runPermaModeStartTime - self.userMangetPlacingTime
+        self.PermaEndEvent.set()

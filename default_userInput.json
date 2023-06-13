@@ -1,1 +1,1 @@
-{"coilCurrent": "0", "sampleCount": "1", "measurementStep_mm": "1.25", "measurementStep": 400, "measure_start": 0, "measureEndPoint": 40000, "measureEndPoint_mm": "125.0", "measurementDataCount": "100.0", "stepperRev_mm": "1.25", "stepperRev": 400}
+{"coilCurrent": 0, "sampleCount": "2", "measurementStep_mm": "1.25", "measurementStep": 400, "measure_start": 0, "measureEndPoint": 40000, "measureEndPoint_mm": "125.0", "measurementDataCount": "100.0", "stepperRev_mm": "1.25", "stepperRev": 400}

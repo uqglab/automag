@@ -150,22 +150,23 @@ class GUIHandler:
         """
         Save the user input value for a parameter and update the cache file.
         """    
-    
+
         value = entry.get()
-
-        self.arcon.userInput[param_name] = (value)
-        entry.unbind('<Return>')
-        entry.bind('<Return>', lambda event: self.saveUserInput(entry, param_name))        
-        # self.writeToInfoConsole( '"' + param_name +'"'+ ' has been set to: ' + '"' + str(self.arcon.userInput[param_name])+'"')
-        with open('default_userInput.json', 'w') as file:
-            json.dump(self.arcon.userInput, file)
-
+        
+        if self.arcon.userInput[param_name]:
+            self.arcon.userInput[param_name] = (value)
+            entry.unbind('<Return>')
+            entry.bind('<Return>', lambda event: self.saveUserInput(entry, param_name))        
+            # self.write2InfoConsole( '"' + param_name +'"'+ ' has been set to: ' + '"' + str(self.arcon.userInput[param_name])+'"')
+            with open('default_userInput.json', 'w') as file:
+                json.dump(self.arcon.userInput, file)
+        
     def nonDictList2mm(self, param):
         """
         Convert a non-dictionary list parameter from steps to mm.
         """            
 
-        return([(int(val) * float(self.arcon.params['stepperRev_mm']) / int(self.arcon.params['stepperStepsPerRev'])) for val in param])
+        return([(int(val) * float(self.arcon.userInput['stepperRev_mm']) / int(self.arcon.params['stepperRev'])) for val in param])
 
     def dictSteps2mm(self, param):
         """
@@ -174,21 +175,21 @@ class GUIHandler:
 
         try: 
             if type(self.arcon.params[param]) == list:
-                self.arcon.params[str(param)+'_mm'] = [(int(val) * float(self.arcon.params['stepperRev_mm']) / int(self.arcon.params['stepperStepsPerRev'])) for val in self.arcon.params[param]]
+                self.arcon.params[str(param)+'_mm'] = [(int(val) * float(self.arcon.userInput['stepperRev_mm']) / int(self.arcon.params['stepperRev'])) for val in self.arcon.params[param]]
             else:
-                self.arcon.params[str(param)+'_mm'] = int(self.arcon.params[param]) * float(self.arcon.params['stepperRev_mm']) / int(self.arcon.params['stepperStepsPerRev'])
+                self.arcon.params[str(param)+'_mm'] = int(self.arcon.params[param]) * float(self.arcon.userInput['stepperRev_mm']) / int(self.arcon.params['stepperRev'])
        
         except:
             if type(self.arcon.userInput[param]) == list:
-                self.arcon.userInput[str(param)+'_mm'] = [(int(val) * float(self.arcon.params['stepperRev_mm']) / int(self.arcon.params['stepperStepsPerRev'])) for val in self.arcon.userInput[param]]
+                self.arcon.userInput[str(param)+'_mm'] = [(int(val) * float(self.arcon.userInput['stepperRev_mm']) / int(self.arcon.params['stepperRev'])) for val in self.arcon.userInput[param]]
             else:
-                self.arcon.userInput[str(param)+'_mm'] = int(self.arcon.userInput[param]) * float(self.arcon.params['stepperRev_mm']) / int(self.arcon.params['stepperStepsPerRev'])
+                self.arcon.userInput[str(param)+'_mm'] = int(self.arcon.userInput[param]) * float(self.arcon.userInput['stepperRev_mm']) / int(self.arcon.params['stepperRev'])
    
     def dictmm2steps(self, param):
         try:
-            self.arcon.userInput[str(param)[:-3]] = round(float(self.arcon.userInput[param])/float(self.arcon.params['stepperRev_mm'])*int(self.arcon.params['stepperStepsPerRev']))
+            self.arcon.userInput[str(param)[:-3]] = round(float(self.arcon.userInput[param])/float(self.arcon.userInput['stepperRev_mm'])*int(self.arcon.params['stepperRev']))
         except:
-            self.arcon.params[str(param)[:-3]] = round(float(self.arcon.params[param])/float(self.arcon.params['stepperRev_mm'])*int(self.arcon.params['stepperStepsPerRev']))
+            self.arcon.params[str(param)[:-3]] = round(float(self.arcon.params[param])/float(self.arcon.userInput['stepperRev_mm'])*int(self.arcon.params['stepperRev']))
 
         
     def updateMeasurementInputs(self):
@@ -198,6 +199,8 @@ class GUIHandler:
         """    
 
         try:
+            self.entry7.state([])
+
             self.saveUserInput(self.entryrev,'stepperRev_mm')
             self.saveUserInput(self.entry5,'measureEndPoint_mm')
             self.saveUserInput(self.entry6,'measurementStep_mm')
@@ -205,15 +208,25 @@ class GUIHandler:
 
 
             if float(self.arcon.userInput['measurementStep_mm']) == 0:
-                self.arcon.userInput['measurementStep_mm'] = float(self.arcon.params['stepperRev_mm']) / float(self.arcon.params['stepperStepsPerRev'])
+                self.arcon.userInput['measurementStep_mm'] = float(self.arcon.userInput['stepperRev_mm']) / float(self.arcon.params['stepperRev'])
                 self.dictmm2steps('measurementStep_mm')
+                self.saveUserInput(self.entry6,'measurementStep_mm')
+
+
+
+            if float(self.arcon.userInput['measureEndPoint_mm']) == 0:
+                self.arcon.userInput['measureEndPoint_mm'] = float(self.arcon.userInput['measurementStep_mm'])
+                self.dictmm2steps('measureEndPoint_mm')
+                self.entry5.delete(0, 'end')  
+                self.entry5.insert(0, self.arcon.userInput['measureEndPoint_mm']) 
+                self.saveUserInput(self.entry5,'measureEndPoint_mm')
 
             self.dictmm2steps('stepperRev_mm')
             self.dictmm2steps('measureEndPoint_mm')
             self.dictmm2steps('measurementStep_mm')
 
-            if int(self.arcon.userInput['measurementStep']) <= float(1 / (self.arcon.params['stepperStepsPerRev'])):
-                self.arcon.userInput['measurementStep'] = int(1.0 / (self.arcon.params['stepperStepsPerRev']))
+            if int(self.arcon.userInput['measurementStep']) <= float(1 / (self.arcon.params['stepperRev'])):
+                self.arcon.userInput['measurementStep'] = int(1.0 / (self.arcon.params['stepperRev']))
 
             self.dictSteps2mm('measurementStep')
             self.dictSteps2mm('stepperPosition')
@@ -243,30 +256,33 @@ class GUIHandler:
             self.entry7.delete(0, 'end')  
             self.entry7.insert(0, self.arcon.userInput['measurementDataCount']) 
             self.saveUserInput(self.entry7,'measurementDataCount')
+            # self.entry7.state(['disabled'])
 
+            self.entryrev.delete(0, 'end')
+            self.entryrev.insert(0, self.arcon.userInput['stepperRev_mm']) 
+            self.saveUserInput(self.entryrev,'stepperRev_mm')
 
-
-     
-
+            self.entryrev.unbind('<Return>')
+            self.entryrev.bind('<Return>', lambda event: self.updateMeasurementInputs())           
             self.entry5.unbind('<Return>')
             self.entry5.bind('<Return>', lambda event: self.updateMeasurementInputs())      
             self.entry6.unbind('<Return>')
             self.entry6.bind('<Return>', lambda event: self.updateMeasurementInputs())
-            self.entry7.unbind('<Return>')
-            self.entry7.bind('<Return>', lambda event: self.updateMeasurementInputs())
-      
+            # self.entry7.unbind('<Return>')
+            # self.entry7.bind('<Return>', lambda event: self.updateMeasurementInputs())
+
         except Exception as e:
 
-            self.entry5.unbind('<Return>')
-            self.entry5.bind('<Return>', lambda event: self.updateMeasurementInputs())      
-            self.entry6.unbind('<Return>')
-            self.entry6.bind('<Return>', lambda event: self.updateMeasurementInputs())
-            self.entry7.unbind('<Return>')
-            self.entry7.bind('<Return>', lambda event: self.updateMeasurementInputs())
+            # self.entry5.unbind('<Return>')
+            # self.entry5.bind('<Return>', lambda event: self.updateMeasurementInputs())      
+            # self.entry6.unbind('<Return>')
+            # self.entry6.bind('<Return>', lambda event: self.updateMeasurementInputs())
+            # self.entry7.unbind('<Return>')
+            # self.entry7.bind('<Return>', lambda event: self.updateMeasurementInputs())
 
-            self.entry6.delete(0, 'end')  
-            self.entry6.insert(0, (1.0 / float(self.arcon.params['stepperStepsPerRev']))) 
-            self.saveUserInput(self.entry6,'measurementStep_mm')          
+            # self.entry6.delete(0, 'end')  
+            # self.entry6.insert(0, (1.0 / float(self.arcon.params['stepperRev']))) 
+            # self.saveUserInput(self.entry6,'measurementStep_mm')          
             self.write2InfoConsole(e)
 
             
@@ -331,13 +347,12 @@ class GUIHandler:
         self.disableButton(self.currentSwitchButton)
         self.disableButton(self.initButton)
         self.disableButton(self.saveButton)
+        self.disableButton(self.browse_button)
 
     def enableAllButtons(self):
-
         """
         Enable all buttons in the user interface.
         """
-
         self.enableButton(self.checkButton)
         self.enableButton(self.calibrateButton)
         self.enableButton(self.permanentButton)
@@ -349,6 +364,7 @@ class GUIHandler:
         self.enableButton(self.currentSwitchButton)
         self.enableButton(self.initButton)
         self.enableButton(self.saveButton)
+        self.enableButton(self.browse_button)
 
 
 
@@ -399,12 +415,13 @@ class GUIHandler:
         """
 
         self.arcon.calibration_range_mm = self.calibrationDistanceEntry.get()
-        self.arcon.params['stepperRev_mm'] = float(self.arcon.calibration_range_mm) / int(self.arcon.calibrationRange) * int(self.arcon.params['stepperStepsPerRev'])
+        self.arcon.userInput['stepperRev_mm'] = float(self.arcon.calibration_range_mm) / int(self.arcon.calibrationRange) * int(self.arcon.params['stepperRev'])
         self.entryrev.delete(0, 'end')
-        self.entryrev.insert(0, self.arcon.params['stepperRev_mm']) 
-        self.sensor1_label_val.config(text=float(self.arcon.params['stepperRev_mm'])*int(self.arcon.params['photosensorPositionA'])/int(self.arcon.params['stepperStepsPerRev'])),
-        self.sensor2_label_val.config(text=float(self.arcon.params['stepperRev_mm'])*int(self.arcon.params['photosensorPositionB'])/int(self.arcon.params['stepperStepsPerRev'])),
+        self.entryrev.insert(0, self.arcon.userInput['stepperRev_mm']) 
+        self.sensor1_label_val.config(text=float(self.arcon.userInput['stepperRev_mm'])*int(self.arcon.params['photosensorPositionA'])/int(self.arcon.params['stepperRev'])),
+        self.sensor2_label_val.config(text=float(self.arcon.userInput['stepperRev_mm'])*int(self.arcon.params['photosensorPositionB'])/int(self.arcon.params['stepperRev'])),
         self.top.destroy()
+        self.enableAllButtons()
 
     def calibrationPopup(self):
 
@@ -468,6 +485,16 @@ class GUIHandler:
         if self.arcon.autoSaveEvent.is_set():
             self.arcon.autoSaveEvent.clear()
             self.saveDataFiles()
+
+        # Writing timings to coil mode measurement ending
+        if self.arcon.CoilEndEvent.is_set():
+            self.arcon.CoilEndEvent.clear()
+            self.write2InfoConsole("End of Coil Mode measurement. Measurement took: " + str(self.arcon.runCoilModeTime)[:3] + "s")
+
+        # Writing timings to measurement ending
+        if self.arcon.PermaEndEvent.is_set():
+            self.arcon.PermaEndEvent.clear()
+            self.write2InfoConsole("End of Permanent Mode measurement. Measurement took: " + str(self.arcon.runPermaModeTime)[:3] + "s")
 
 
         # Update the live magnetic field plot and values
@@ -569,8 +596,8 @@ class GUIHandler:
         self.folder_entry = tk.ttk.Entry(frame, width=76)
         self.folder_entry.place(x=605, y=6)
         
-        browse_button = tk.ttk.Button(frame, text="Browse", command=self.browseFolderPath)
-        browse_button.place(x=1310, y=3)
+        self.browse_button = tk.ttk.Button(frame, text="Browse", command=self.browseFolderPath)
+        self.browse_button.place(x=1310, y=3)
         
         self.saveButton = tk.ttk.Button(frame, text="Save", command=self.saveDataFiles)
         self.saveButton.place(x=1395, y=3)
@@ -631,7 +658,7 @@ class GUIHandler:
 
         self.entryrev = tk.ttk.Entry(frame, width=6)
         self.entryrev.place(x=185,y=8)
-        self.entryrev.insert(0, self.arcon.params['stepperRev_mm']) 
+        self.entryrev.insert(0, self.arcon.userInput['stepperRev_mm']) 
         self.entryrev.unbind('<Return>')
         self.entryrev.bind('<Return>', lambda event: self.updateMeasurementInputs()) 
     
@@ -657,7 +684,9 @@ class GUIHandler:
                                      self.saveUserInput(self.entryrev, 'stepperRev_mm'),
                                      self.dictmm2steps('stepperRev_mm'),
                                      self.loop.create_task(self.arcon.runCalibration()),
-                                     
+                                     self.write2InfoConsole("Started Calibration."),
+                                     self.disableAllButtons()
+
 
                                      )
                                      )
@@ -702,7 +731,7 @@ class GUIHandler:
         label7.place(x=5, y=122)
         self.entry7 = tk.ttk.Entry(frame, width=8)
         self.entry7.place(x=128,y=122)
-        self.entry7.insert(0, self.arcon.userInput['measurementDataCount']) 
+        self.entry7.insert(0, self.arcon.userInput['measurementDataCount'])
        
         self.entry5.bind('<Return>', self.updateMeasurementInputs())       
         self.entry6.bind('<Return>', self.updateMeasurementInputs())
@@ -719,7 +748,9 @@ class GUIHandler:
                                      self.dictmm2steps('measureEndPoint_mm'),
                                      self.updateMeasurementInputs(),
                                      self.disableAllButtons(),
-                                     self.loop.create_task(self.arcon.runCoilMode())
+                                     self.loop.create_task(self.arcon.runCoilMode()),
+                                     self.write2InfoConsole("Started Measurement in Coil Mode")
+
                                      )
                                      )
                                         
@@ -735,6 +766,7 @@ class GUIHandler:
                                      self.updateMeasurementInputs(),
                                      self.disableAllButtons(),
                                      self.loop.create_task(self.arcon.runPermaModeOff()),
+                                     self.write2InfoConsole("Started Measurement in Permanent Mode")
 
                                      )
                                      )
@@ -756,14 +788,11 @@ class GUIHandler:
 
         self.entry8 = tk.ttk.Entry(frame, width=5)
         self.entry8.place(x=170,y=5)
-        self.entry8.insert(0, 0)
+        self.entry8.insert(0,0) 
+
         self.moveToButton = tk.ttk.Button(frame, text="Move", command=lambda:
                                     (
-                                     self.saveUserInput(self.entry8,'stepper_target_position_mm'),
-                                     self.dictmm2steps('stepper_target_position_mm'),
-                                     self.loop.create_task(self.arcon.stepperMoveAbsolute(int(self.arcon.userInput['stepper_target_position']))),
-                                     
-                                     self.write2InfoConsole(self.arcon.params['stepperPosition'])
+                                     self.loop.create_task(self.arcon.stepperMoveAbsolute(round(float(self.entry8.get())/ float(self.arcon.userInput['stepperRev_mm']) * int(self.arcon.params['stepperRev'])))),
                                      )
                                 )
                                                                     
@@ -778,8 +807,7 @@ class GUIHandler:
 
         self.moveByButton = tk.ttk.Button(frame, text="Move", command=lambda:
                                     (
-                                     self.arcon.loop.create_task(self.arcon.stepperMoveRelative(round(float(self.entry9.get())/ float(self.arcon.params['stepperRev_mm']) * int(self.arcon.params['stepperStepsPerRev'])))),
-                                     self.write2InfoConsole(self.arcon.params['stepperPosition'])
+                                     self.arcon.loop.create_task(self.arcon.stepperMoveRelative(round(float(self.entry9.get())/ float(self.arcon.userInput['stepperRev_mm']) * int(self.arcon.params['stepperRev'])))),
                                      )
                                 )
                           
@@ -811,9 +839,9 @@ class GUIHandler:
         self.hallr_label_val.place(x=885, y=47)
 
         self.on = tk.PhotoImage(file = "assets/on.png")
-        self.on = self.on.subsample(2)
+        self.on = self.on.subsample(16)
         self.off = tk.PhotoImage(file = "assets/off.png")
-        self.off= self.off.subsample(2)
+        self.off= self.off.subsample(16)
 
    
         self.varRealTimeMeasurement = tk.BooleanVar(value=False)        
@@ -836,7 +864,7 @@ class GUIHandler:
                                                   )
         
         self.varMosfetSwitch.set(False)
-        self.currentSwitchButton.place(x=700, y=1)
+        self.currentSwitchButton.place(x=685, y=1)
 
         self.measureOnceButton = tk.ttk.Button(frame, text='Measure Field Once', command=lambda:
                                     (
@@ -929,7 +957,9 @@ class GUIHandler:
         self.arcon.calibrationEvent2 = asyncio.Event()
         self.arcon.placeMagnetEvent = asyncio.Event()
         self.arcon.autoSaveEvent = asyncio.Event()
-       
+        self.arcon.PermaEndEvent = asyncio.Event()
+        self.arcon.CoilEndEvent = asyncio.Event()
+
         fps = 30
         while True:
             
